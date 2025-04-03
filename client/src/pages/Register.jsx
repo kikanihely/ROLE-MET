@@ -54,15 +54,53 @@ const Register = () => {
         return true;
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (user.password !== user.confirmPassword) {
-            alert("Passwords do not match.");
-            return;
+        console.log(user);
+      
+        try {
+          const response = await fetch("http://localhost:5000/api/auth/register", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(user)
+          });
+          console.log("response data : ", response);
+          console.log("Sending data:", JSON.stringify(user, null, 2)); // Debugging log
+      
+          if (response.ok) {
+            const responseData = await response.json();
+            alert("Registration successful");
+            setUser({
+              fullName: "",
+              city: "",
+              state: "",
+              jobTitle: "",
+              experience: "",
+              industry: "",
+              skills: "",
+              linkedin: "",
+              github: "",
+              resume: "",
+              email: "",
+              password: "",
+              confirmPassword: ""
+            });
+            console.log(responseData);
+      
+            // ✅ Navigate to Login Page
+            navigate("/login");
+          } else {
+            const errorData = await response.json();
+            alert(errorData.message || "Something went wrong. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error during registration:", error);
+          alert("An error occurred. Please try again later.");
         }
-        alert("Registration successful!");
-        navigate("/login");
-    };
+      };      
+      
 
     const cities = ["New York", "Los Angeles", "Chicago", "Houston", "Miami"];
     const states = ["California", "Texas", "Florida", "Illinois", "New York"];
