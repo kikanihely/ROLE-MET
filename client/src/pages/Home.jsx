@@ -5,6 +5,7 @@ import JobSuggestions from '../component/FeaturesSection'
 import CommunitySection from '../component/CommunitySection'
 import Footer from '../component/Footer'
 import CommonNavbar from '../component/CommonNavbar'
+import Chatbot from '../component/Chatbot'
 
 const Home = () => {
 
@@ -14,6 +15,7 @@ const Home = () => {
       <LandPage />
       <JobSuggestions />
       <CommunitySection />
+      <Chatbot />
       <Footer />
     </div>
   )
