@@ -21,6 +21,7 @@ const AddJob = () => {
 
     try {
       const token = localStorage.getItem("token");
+      console.log("Sending token:", token);
 
       const response = await fetch("http://localhost:5000/api/auth/jobs/add", {
         method: "POST",
@@ -32,6 +33,7 @@ const AddJob = () => {
       });
 
       const result = await response.json();
+      console.log("Backend response:", result);
 
       if (!response.ok) {
         alert(result.message || "Something went wrong!");
@@ -47,6 +49,7 @@ const AddJob = () => {
         salaryRange: "",
         skillsRequired: "",
       });
+      navigate("/company-dashboard"); 
     } catch (error) {
       console.error("Error posting job:", error);
       alert("Failed to add job.");

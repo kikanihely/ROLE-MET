@@ -1,142 +1,121 @@
-import React, { useState, useEffect } from "react";
-import { FiUpload, FiCheckCircle, FiXCircle } from "react-icons/fi";
+import React, { useState } from 'react';
+import { FiUpload, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import axios from "axios";
+
 
 const Upload = () => {
   const [file, setFile] = useState(null);
-  const [jobDescription, setJobDescription] = useState("");
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [extractedText, setExtractedText] = useState("");
+  const [score, setScore] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+
 
   const handleChange = (event) => {
     setFile(event.target.files[0]);
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-  
-    if (!file) {
-      alert("Please select a file!");
+  const handleCheckScore = async () => {
+    if (!file || !description) {
+      setError("Please upload a file and enter job description.");
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("jobDescription", jobDescription);
-  
-    setLoading(true);
-    setError("");
-    setResult(null);
-  
+    formData.append("jobDescription", description);
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/uploadResume",
         formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
-    
-      console.log("API Response:", response.data);
-    
-      if (response.data.status === 200) {
-        setResult(response.data.data);  // Set parsed JSON data
-      } else {
-        setError(response.data.message); // Handle error messages properly
-      }
+
+      const { score, suggestions } = response.data;
+
+      setScore(score);
+      setSuggestions(suggestions);
+      setError('');
     } catch (e) {
-      setError("Error processing resume. Please try again.");
-      console.error("Connection Error:", e.response ? e.response.data : e);
+      console.error("Connection Error:", e);
+      setError("Something went wrong while checking the score.");
     }
-    
-    
   };
-  
-  
 
 
-  useEffect(() => {
-    console.log("Updated result state:", result);
-  }, [result]);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-8">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Upload Your Resume</h2>
+    <div className="min-h-[90vh] bg-gradient-to-br from-gray-200 to-gray-350 flex items-center justify-center p-8">
+      <div className="w-full max-w-3xl bg-white p-8 rounded-3xl shadow-lg">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">Upload Your Resume</h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg text-center"
-      >
-        <textarea
-          value={jobDescription}
-          placeholder="Enter Job Description Here..."
-          onChange={(e) => setJobDescription(e.target.value)}
-          className="w-full h-28 p-3 mb-4 border border-gray-300 rounded-lg resize-none"
-        />
+        <div className='flex gap-8'>
+          <div className='w-full'>
+            <label className="cursor-pointer border-4 border-dashed border-gray-400 rounded-2xl p-10 flex flex-col items-center transition-all hover:border-gray-600 hover:bg-gray-50">
+              <FiUpload className="text-6xl text-gray-600 mb-4" />
+              <p className="text-gray-600">Drag & Drop or Click to Select PDF File</p>
+              <input type="file" accept="application/pdf" className="hidden" onChange={handleChange} />
+            </label>
 
-        <label className="cursor-pointer border-2 border-dashed border-gray-400 rounded-lg p-6 flex flex-col items-center text-gray-600 hover:border-gray-600 transition">
-          <FiUpload className="text-4xl mb-2" />
-          {file ? file.name : "Click or Drag & Drop PDF Here"}
-          <input type="file" accept="application/pdf" className="hidden" onChange={handleChange} />
-        </label>
+            {file && (
+              <p className="text-green-600 mt-4 flex items-center gap-2">
+                <FiCheckCircle /> File Uploaded: {file.name}
+              </p>
+            )}
 
-        {file && (
-          <p className="text-green-600 mt-2 flex items-center gap-2">
-            <FiCheckCircle /> File Uploaded: {file.name}
-          </p>
-        )}
+            {error && (
+              <p className="text-red-500 mt-4 flex items-center gap-2">
+                <FiXCircle /> {error}
+              </p>
+            )}
 
-        {error && (
-          <p className="text-red-500 mt-2 flex items-center gap-2">
-            <FiXCircle /> {error}
-          </p>
-        )}
+            {score !== null && (
+              <div className="mt-6">
+                <p className="text-xl font-semibold text-gray-800">Resume Match Score: <span className="text-green-600">{score}%</span></p>
+
+                {Array.isArray(suggestions) && suggestions.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">Improvement Suggestions:</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-600">
+                      {suggestions.map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+          </div>
+          <div className='w-full'>
+            <textarea
+              className="w-full mb-6 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-600"
+              rows="7"
+              placeholder="Enter job description here..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+        </div>
+
+
 
         <button
-          type="submit"
-          className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-lg w-full font-semibold hover:bg-blue-600 transition"
-          disabled={loading}
+          className="mt-6 w-full bg-black text-white py-3 rounded-xl font-semibold hover:bg-gray-800 transition-all"
+          style={{ backgroundColor: "#282828" }}
+          onClick={handleCheckScore}
         >
-          {loading ? "Processing..." : "Upload & Analyze"}
+          Check Score
         </button>
-      </form>
-
-      {result && typeof result === "object" && (
-  <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-lg mt-6">
-    <h3 className="text-xl font-bold text-gray-800 mb-3">Resume Analysis</h3>
-
-    <div className="bg-blue-100 text-blue-800 p-4 rounded-lg mb-4 text-center">
-      <h4 className="text-lg font-semibold">Resume Match Score:</h4>
-      <p className="text-3xl font-bold">{result.resume_match_score || "N/A"}%</p>
+      </div>
     </div>
 
-    {result.analysis && (
-      <>
-        <h4 className="text-lg font-semibold mb-2">Detailed Analysis</h4>
-        <ul className="list-disc pl-6 text-gray-700 space-y-1">
-          <li><strong>Skills Match:</strong> {result.analysis.skills_match || "N/A"}</li>
-          <li><strong>Experience Relevance:</strong> {result.analysis.experience_relevance || "N/A"}</li>
-          <li><strong>Education Fit:</strong> {result.analysis.education_fit || "N/A"}</li>
-          <li><strong>Certifications & Projects:</strong> {result.analysis.certifications_projects || "N/A"}</li>
-        </ul>
-
-        {result.improvement_suggestions?.length > 0 && (
-          <>
-            <h4 className="text-lg font-semibold mt-4">Improvement Suggestions</h4>
-            <ul className="list-disc pl-6 text-gray-700 space-y-1">
-              {result.improvement_suggestions.map((suggestion, index) => (
-                <li key={index}>{suggestion}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </>
-    )}
-  </div>
-)}
-
-{/* {result} */}
-    </div>
   );
-};
+}
 
 export default Upload;

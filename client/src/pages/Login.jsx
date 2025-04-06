@@ -28,7 +28,8 @@ const Login = () => {
       // const loginPayload = role === "company"
       // ? { emailId: email, password, role }
       // : { email, password, role };
-    
+      console.log("Received role:", role);
+
       console.log("Payload being sent to server:", loginPayload);
   
       const response = await fetch("http://localhost:5000/api/auth/login", {
