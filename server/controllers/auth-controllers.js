@@ -5,6 +5,7 @@ const Candidate = require("../models/user-model");
 const bcrypt = require("bcryptjs");
 const Job = require("../models/job-model");
 const jwt = require("jsonwebtoken")
+const { registerSchema, loginSchema } = require("../validators/auth-validator");
 
 const home = async (req, res) => {
   try {
@@ -14,45 +15,31 @@ const home = async (req, res) => {
   }
 };
 
-// Candidate registration
 const register = async (req, res) => {
   try {
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ errors: parsed.error.errors });
+    }
+
     const {
-      fullName,
-      city,
-      state,
-      jobTitle,
-      experience,
-      industry,
-      skills,
-      linkedin,
-      github,
-      resume,
-      email,
-      password,
-    } = req.body;
+      fullName, city, state, jobTitle, experience, industry,
+      skills, linkedin, github, resume, email, password,
+    } = parsed.data;
 
     const userExist = await Candidate.findOne({ email });
     if (userExist) return res.status(400).json({ msg: "Email already exists" });
 
     const userCreated = await Candidate.create({
-      fullName,
-      city,
-      state,
-      jobTitle,
-      experience,
-      industry,
-      skills,
-      linkedin,
-      github,
-      resume,
-      email,
-      password,
+      fullName, city, state, jobTitle, experience, industry,
+      skills, linkedin, github, resume, email, password,
     });
+
+    const token = await userCreated.generateToken();
 
     res.status(201).json({
       message: "Registration successful",
-      token: await userCreated.generateToken(),
+      token,
       userId: userCreated._id.toString(),
     });
   } catch (error) {
@@ -63,12 +50,13 @@ const register = async (req, res) => {
 
 // Login for candidate / company
 const login = async (req, res) => {
-  const { email, emailId, password, role } = req.body;
-  const userEmail = email || emailId;
-
-  if (!userEmail || !password || !role) {
-    return res.status(400).json({ message: "All fields are required" });
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ errors: parsed.error.errors });
   }
+
+  const { email, emailId, password, role } = parsed.data;
+  const userEmail = email || emailId;
 
   let user;
 
@@ -81,21 +69,14 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: "1h" });
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1h",
-    });
     res.status(200).json({ token });
-
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -113,14 +94,14 @@ const uploadResume = async (req, res) => {
       return res.status(400).json({ error: "Only PDF files are allowed" });
     }
 
+    // Extract text from PDF
     const data = await pdfParse(req.file.buffer);
     let extractedText = data.text;
 
     extractedText += "Job Description: " + req.jobDescription;
     const result = await langFlowGetScore(extractedText);
 
-    console.log(result);
-    res.json(result);
+    res.json({ text: extractedText });
   } catch (error) {
     console.error("Error extracting text:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -218,6 +199,21 @@ const addJob = async (req, res) => {
   }
 };
 
+// Get all jobs posted by logged-in company
+const getCompanyJobs = async (req, res) => {
+  try {
+    const companyId = req.user.userId;
+
+    const jobs = await Job.find({ company: companyId }).sort({ createdAt: -1 });
+    
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error("Error fetching company jobs:", error);
+    res.status(500).json({ message: "Failed to fetch jobs", error: error.message });
+  }
+};
+
+
 module.exports = {
   home,
   register,
@@ -225,5 +221,6 @@ module.exports = {
   uploadResume,
   getUser,
   companyRegister,
-  addJob
+  addJob,
+  getCompanyJobs
 };

@@ -16,7 +16,8 @@ router.route("/register").post(authControllers.register);
 router.route("/login").post(authControllers.login);
 
 router.get("/user/:id",verifyToken, authControllers.getUser);
-router.post("/jobs/add",authMiddleware, authControllers.addJob);
+router.post("/jobs/add",verifyToken, authControllers.addJob);
+router.get("/jobs/company", verifyToken, authControllers.getCompanyJobs);
 
 // Chatbot route
 router.post("/chatbot", async (req, res) => {

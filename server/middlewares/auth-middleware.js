@@ -4,6 +4,7 @@ const Candidate = require("../models/user-model"); // Optional: If you have cand
 // const Admin = require("../models/admin-model"); // Optional: If you have admin model
 
 const authMiddleware = async (req, res, next) => {
+  console.log("Inside authMiddleware");
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

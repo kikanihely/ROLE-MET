@@ -1,11 +1,12 @@
 const { z } = require("zod");
+const mongoose = require("mongoose"); // Required for ObjectId validation
 
 const registerSchema = z
   .object({
     fullName: z.string().min(1, { message: "Full Name is required" }).trim(),
     city: z.string().min(1, { message: "City is required" }).trim(),
     state: z.string().min(1, { message: "State is required" }).trim(),
-    jobTitle: z.string().optional().trim(),
+    jobTitle: z.string().trim().optional(),
     experience: z
       .number()
       .min(0, { message: "Experience cannot be negative" })
@@ -50,6 +51,11 @@ const loginSchema = z.object({
     .regex(/[0-9]/, { message: "Password must contain at least one digit" })
     .regex(/[@$!%*?&#]/, {
       message: "Password must contain at least one special character",
+    }),
+
+    role: z.enum(["candidate", "company"], {
+      required_error: "Role is required",
+      invalid_type_error: "Role must be either 'candidate' or 'company'",
     }),
 });
 
@@ -127,10 +133,10 @@ const jobSchema = z.object({
 
   salaryRange: z
     .string()
-    .optional()
     .regex(/^\d{4,}-\d{4,}$/, {
       message: "Salary range must be in 'min-max' format like '40000-60000'",
-    }),
+    })
+    .optional(),
 
   skillsRequired: z
     .string()
