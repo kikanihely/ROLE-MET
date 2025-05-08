@@ -13,11 +13,15 @@ router.route("/").get(authControllers.home);
 router.post("/uploadResume", upload.single("file"), authControllers.uploadResume);
 router.post("/company-register", uploadLogo.single('logo'), authControllers.companyRegister);
 router.route("/register").post(authControllers.register);
-router.route("/login").post(authControllers.login);
-
+  router.route("/login").post(authControllers.login);
 router.get("/user/:id",verifyToken, authControllers.getUser);
 router.post("/jobs/add",verifyToken, authControllers.addJob);
 router.get("/jobs/company", verifyToken, authControllers.getCompanyJobs);
+router.delete("/jobs/:id",verifyToken,authControllers.deleteJob);
+router.put("/jobs/:id",verifyToken,authControllers.editJob);
+router.get("/jobs/:id", verifyToken, authControllers.getJobById);
+router.put("/profile", verifyToken, authControllers.updateUserProfile);
+
 
 // Chatbot route
 router.post("/chatbot", async (req, res) => {

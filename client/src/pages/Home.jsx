@@ -2,7 +2,7 @@ import React from 'react'
 import Navbar from '../component/Navbar'
 import LandPage from '../component/LandPage'
 import JobSuggestions from '../component/FeaturesSection'
-import CommunitySection from '../component/CommunitySection'
+import HowItWorksSection from '../component/HowItWorksSection'
 import Footer from '../component/Footer'
 import CommonNavbar from '../component/CommonNavbar'
 import Chatbot from '../component/Chatbot'
@@ -14,8 +14,8 @@ const Home = () => {
       <CommonNavbar />
       <LandPage />
       <JobSuggestions />
-      <CommunitySection />
-      <Chatbot />
+      <HowItWorksSection />
+      {/* <Chatbot /> */}
       <Footer />
     </div>
   )

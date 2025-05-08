@@ -60,19 +60,25 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(user);
-
+  
+    // Convert comma-separated string to array
+    const formattedUser = {
+      ...user,
+      skills: user.skills.split(",").map((skill) => skill.trim()),
+      experience: Number(user.experience), // just in case it's still a string
+    };
+  
+    console.log("Sending data:", formattedUser); // for debug
+  
     try {
       const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(user),
+        body: JSON.stringify(formattedUser),
       });
-      console.log("response data : ", response);
-      console.log("Sending data:", JSON.stringify(user, null, 2)); // Debugging log
-
+  
       if (response.ok) {
         const responseData = await response.json();
         alert("Registration successful");
@@ -91,9 +97,6 @@ const Register = () => {
           password: "",
           confirmPassword: "",
         });
-        console.log(responseData);
-
-        // ✅ Navigate to Login Page
         navigate("/login");
       } else {
         const errorData = await response.json();
@@ -104,6 +107,7 @@ const Register = () => {
       alert("An error occurred. Please try again later.");
     }
   };
+  
 
   const cities = ["New York", "Los Angeles", "Chicago", "Houston", "Miami"];
   const states = ["California", "Texas", "Florida", "Illinois", "New York"];

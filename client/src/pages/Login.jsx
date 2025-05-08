@@ -49,13 +49,19 @@ const Login = () => {
       const actualRole = data.role || role;
   
       storetokenInLS(data.token);
-      localStorage.setItem("userId", data.userId);
       localStorage.setItem("role", actualRole);
       localStorage.setItem("token", data.token);
+      
+      if (data.user && data.user._id) {
+        localStorage.setItem("userId", data.user._id);
+      } else {
+        console.warn("No user ID returned from login response.");
+      }
+      
   
       alert("Login successful!");
   
-      if (actualRole === "candidate") navigate("/me");
+      if (actualRole === "candidate") navigate("/dashboard");
       else if (actualRole === "company") navigate("/company-dashboard");
     } catch (error) {
       console.error("Error during login:", error);

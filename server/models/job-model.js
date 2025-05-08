@@ -24,7 +24,7 @@ const JobSchema = new mongoose.Schema(
     },
     skillsRequired: {
       type: String,
-    },
+    },    
     company: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",
